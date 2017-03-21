@@ -1,0 +1,81 @@
+直接上代码
+
+首先引入runtime头文件
+
+#import<objc/runtime.h>
+
++(void)load
+
+{
+
+static dispatch_once_t onceToken;
+
+dispatch_once(&onceToken, ^{
+
+Class class = [self class];
+
+swizzleMethod(class, @selector(touchbutton1:), @selector(touchbutton2:));
+
+});
+
+}
+
+- (void)viewDidLoad {
+
+[super viewDidLoad];
+
+UIButton *button5 = [[UIButton alloc]initWithFrame:CGRectMake(220, 200, 100, 100)];
+
+[button5 setTitle:@"4" forState:UIControlStateNormal];
+
+button5.backgroundColor = [UIColor grayColor];
+
+[button5 addTarget:self action:@selector(touchbutton1:) forControlEvents:UIControlEventTouchUpInside];
+
+button5.tag = 5;
+
+[button5 setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+
+[self.view addSubview:button5];
+
+}
+
+
+
+void swizzleMethod(Class class,SEL originalSelector,SEL swizzledSelector){
+
+Method originalMethod = class_getInstanceMethod(class, originalSelector);
+
+Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
+
+BOOL didAddMethod = class_addMethod(class, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod));
+
+if (didAddMethod) {
+
+class_replaceMethod(class, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
+
+}else {
+
+method_exchangeImplementations(originalMethod, swizzledMethod);
+
+}
+
+}
+
+-(void)touchbutton1:(UIButton *)sender
+
+{
+
+NSLog(@"******* 点击 11111********");
+
+}
+
+-(void)touchbutton2:(UIButton *)sender
+
+{
+
+NSLog(@"******* 点击 222222********");
+
+}
+
+这样就实现了 点击调用的button1方法 变为调用button2 方法啦 
